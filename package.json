@@ -1,0 +1,12 @@
+{
+  "name": "inventory-list",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "setup": "cd api && npm install && cd ../app && npm install",
+    "start": "cd api && npm start && cd ../app && npm start"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
