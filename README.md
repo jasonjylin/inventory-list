@@ -17,7 +17,7 @@ or:
 or:
 
 1. Clone the repo
-2. cd to app and api and do `npm install` in both
+2. `cd` to app and api and do `npm install` in both
 3. `npm start` in both app and api
 4. Access app on `localhost:3000`, or GraphiQL on `localhost:5000/graphql`
 
