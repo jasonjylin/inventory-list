@@ -22,7 +22,7 @@ or:
 4. Access app on `localhost:3000`, or GraphiQL on `localhost:5000/graphql`
 
 # GraphiQL
-GraphiQL is available on localhost:5000/graphql. Documentation is available for the query and mutation in the documentation explorer on the right.
+GraphiQL is available on localhost:5000/graphql. Documentation is available for every query and mutation in the documentation explorer on the right.
 
 # Description
 ![image](https://user-images.githubusercontent.com/53064105/149262939-c9181f2c-0165-4c14-b3fe-3ca5ae2b0ae8.png)
