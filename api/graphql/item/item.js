@@ -10,6 +10,16 @@ const ItemType = new graphql.GraphQLObjectType({
   },
 });
 
+const DeletedItemType = new graphql.GraphQLObjectType({
+  name: "DeletedItem",
+  fields: {
+    id: { type: graphql.GraphQLID },
+    name: { type: graphql.GraphQLString },
+    amount: { type: graphql.GraphQLInt },
+    delete_message: { type: graphql.GraphQLString },
+  },
+});
+
 var queryType = new graphql.GraphQLObjectType({
   name: "Query",
   fields: {
@@ -52,7 +62,7 @@ var queryType = new graphql.GraphQLObjectType({
       },
     },
     deletedItems: {
-      type: new graphql.GraphQLList(ItemType),
+      type: new graphql.GraphQLList(DeletedItemType),
       resolve: (root, args, context, info) => {
         return new Promise((resolve, reject) => {
           db.all(
@@ -180,6 +190,24 @@ var mutationType = new graphql.GraphQLObjectType({
               reject(err);
             }
             resolve(`Post #${id} restored`);
+          });
+        });
+      },
+    },
+    permDelete: {
+      type: graphql.GraphQLString,
+      args: {
+        id: {
+          type: new graphql.GraphQLNonNull(graphql.GraphQLID),
+        },
+      },
+      resolve: (root, { id }) => {
+        return new Promise((resolve, reject) => {
+          db.run("DELETE FROM items WHERE id = ?;", id, (err) => {
+            if (err) {
+              reject(err);
+            }
+            resolve(`Post #${id} permanently deleted`);
           });
         });
       },

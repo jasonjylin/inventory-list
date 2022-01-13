@@ -31,6 +31,7 @@ export const COMBINED_QUERY = gql`
       id
       name
       amount
+      delete_message
     }
   }
 `;

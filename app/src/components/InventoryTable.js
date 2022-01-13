@@ -22,6 +22,7 @@ import {
   ITEM_UPDATE_MUTATION,
   ITEM_DELETE_MUTATION,
   ITEM_RESTORE_MUTATION,
+  ITEM_PERM_DELETE_MUTATION,
 } from "../graphql/mutations";
 
 import { useEffect, useState } from "react";
@@ -53,8 +54,10 @@ export default function InventoryTable(props) {
   const [previous, setPrevious] = useState({});
   const [formOpen, setFormOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [permDeleteOpen, setPermDeleteOpen] = useState(false);
   const [deleteMessage, setDeleteMessage] = useState("");
   const [deleteID, setDeleteID] = useState("");
+  const [permDeleteID, setPermDeleteID] = useState("");
   const [input, setInput] = useState({ name: "", amount: "" });
   const [recoverOpen, setRecoverOpen] = useState(false);
 
@@ -62,6 +65,7 @@ export default function InventoryTable(props) {
   const [editItem] = useMutation(ITEM_UPDATE_MUTATION);
   const [deleteItem] = useMutation(ITEM_DELETE_MUTATION);
   const [restoreItem] = useMutation(ITEM_RESTORE_MUTATION);
+  const [permDelete] = useMutation(ITEM_PERM_DELETE_MUTATION);
 
   useEffect(() => {
     setRows(props.data.items);
@@ -174,6 +178,23 @@ export default function InventoryTable(props) {
 
   const handleRestore = (id) => {
     restoreItem({ variables: { id: id } });
+    props.refetch();
+  };
+
+  const handleOpenPermDelete = (id) => {
+    setPermDeleteID(id);
+    setPermDeleteOpen(true);
+  };
+
+  const handleClosePermDelete = () => {
+    setPermDeleteID("");
+    setPermDeleteOpen(false);
+  };
+
+  const handlePermDelete = (id) => {
+    permDelete({ variables: { id: id } });
+    setPermDeleteID("");
+    setPermDeleteOpen(false);
     props.refetch();
   };
 
@@ -296,6 +317,7 @@ export default function InventoryTable(props) {
                 <TableCell>ID</TableCell>
                 <TableCell align="left">Inventory Item</TableCell>
                 <TableCell align="left">Amount</TableCell>
+                <TableCell align="left">Deletion Message</TableCell>
                 <TableCell align="left">Actions</TableCell>
               </TableRow>
             </TableHead>
@@ -308,15 +330,15 @@ export default function InventoryTable(props) {
                   <TableCell component="th" scope="row">
                     {row.id}
                   </TableCell>
-                  <CustomTableCell
-                    {...{ row, name: "name", onChange }}
-                  ></CustomTableCell>
-                  <CustomTableCell
-                    {...{ row, name: "amount", onChange }}
-                  ></CustomTableCell>
+                  <TableCell align="left">{row.name}</TableCell>
+                  <TableCell align="left">{row.amount}</TableCell>
+                  <TableCell align="left">{row.delete_message}</TableCell>
                   <TableCell align="left">
                     <Button onClick={() => handleRestore(row.id)}>
                       Restore
+                    </Button>
+                    <Button onClick={() => handleOpenPermDelete(row.id)}>
+                      Perm Delete
                     </Button>
                   </TableCell>
                 </TableRow>
@@ -325,6 +347,20 @@ export default function InventoryTable(props) {
           </Table>
         </TableContainer>
       )}
+      <Dialog open={permDeleteOpen} onClose={handleClosePermDelete}>
+        <DialogTitle>Permanent Deletion Confirmation</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            This will delete this inventory item forever. Are you sure?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => handlePermDelete(permDeleteID)}>
+            Confirm
+          </Button>
+          <Button onClick={handleClosePermDelete}>Cancel</Button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 }

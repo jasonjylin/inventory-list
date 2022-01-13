@@ -27,3 +27,9 @@ export const ITEM_RESTORE_MUTATION = gql`
     restoreItem(id: $id)
   }
 `;
+
+export const ITEM_PERM_DELETE_MUTATION = gql`
+  mutation PermDelete($id: ID!) {
+    permDelete(id: $id)
+  }
+`;
