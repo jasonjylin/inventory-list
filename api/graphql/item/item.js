@@ -95,6 +95,9 @@ var mutationType = new graphql.GraphQLObjectType({
       },
       resolve: (root, { name, amount }) => {
         return new Promise((resolve, reject) => {
+          if (name === "" || !(parseInt(amount) >= 0)) {
+            reject(new Error("Invalid input."));
+          }
           db.run(
             "INSERT INTO items (name, amount) VALUES (?,?);",
             [name, amount],
@@ -128,6 +131,9 @@ var mutationType = new graphql.GraphQLObjectType({
         },
       },
       resolve: (root, { id, name, amount }) => {
+        if (name === "" || !(parseInt(amount) >= 0)) {
+          reject(new Error("Invalid input."));
+        }
         return new Promise((resolve, reject) => {
           db.run(
             "UPDATE items SET name = ?, amount = ? WHERE id = ?;",
@@ -154,7 +160,7 @@ var mutationType = new graphql.GraphQLObjectType({
       },
       resolve: (root, { id, message }) => {
         return new Promise((resolve, reject) => {
-          if (message == "") {
+          if (message === "") {
             db.run("UPDATE items SET deleted = 1 WHERE id = ?;", id, (err) => {
               if (err) {
                 reject(err);
@@ -185,12 +191,16 @@ var mutationType = new graphql.GraphQLObjectType({
       },
       resolve: (root, { id }) => {
         return new Promise((resolve, reject) => {
-          db.run("UPDATE items SET deleted = 0, delete_message = NULL WHERE id = ?;", id, (err) => {
-            if (err) {
-              reject(err);
+          db.run(
+            "UPDATE items SET deleted = 0, delete_message = NULL WHERE id = ?;",
+            id,
+            (err) => {
+              if (err) {
+                reject(err);
+              }
+              resolve(`Post #${id} restored`);
             }
-            resolve(`Post #${id} restored`);
-          });
+          );
         });
       },
     },

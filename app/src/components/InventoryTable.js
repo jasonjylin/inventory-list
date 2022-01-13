@@ -25,7 +25,7 @@ import {
   ITEM_PERM_DELETE_MUTATION,
 } from "../graphql/mutations";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 
 const CustomTableCell = ({ row, name, onChange }) => {
   const { isEditMode } = row;
@@ -61,11 +61,34 @@ export default function InventoryTable(props) {
   const [input, setInput] = useState({ name: "", amount: "" });
   const [recoverOpen, setRecoverOpen] = useState(false);
 
-  const [createItem] = useMutation(ITEM_CREATE_MUTATION);
-  const [editItem] = useMutation(ITEM_UPDATE_MUTATION);
-  const [deleteItem] = useMutation(ITEM_DELETE_MUTATION);
-  const [restoreItem] = useMutation(ITEM_RESTORE_MUTATION);
-  const [permDelete] = useMutation(ITEM_PERM_DELETE_MUTATION);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [errorOpen, setErrorOpen] = useState(false);
+
+  const [createItem] = useMutation(ITEM_CREATE_MUTATION, {
+    onCompleted() {
+      props.refetch();
+    },
+  });
+  const [editItem] = useMutation(ITEM_UPDATE_MUTATION, {
+    onCompleted() {
+      props.refetch();
+    },
+  });
+  const [deleteItem] = useMutation(ITEM_DELETE_MUTATION, {
+    onCompleted() {
+      props.refetch();
+    },
+  });
+  const [restoreItem] = useMutation(ITEM_RESTORE_MUTATION, {
+    onCompleted() {
+      props.refetch();
+    },
+  });
+  const [permDelete] = useMutation(ITEM_PERM_DELETE_MUTATION, {
+    onCompleted() {
+      props.refetch();
+    },
+  });
 
   useEffect(() => {
     setRows(props.data.items);
@@ -73,7 +96,7 @@ export default function InventoryTable(props) {
   }, [props.data]);
 
   const onToggleEditMode = (id) => {
-    setRows((state) => {
+    setRows((rows) => {
       return rows.map((row) => {
         if (row.id === id) {
           return { ...row, isEditMode: !row.isEditMode };
@@ -84,10 +107,21 @@ export default function InventoryTable(props) {
   };
 
   const resetAmount = (id, amount) => {
-    setRows((state) => {
+    setRows((rows) => {
       return rows.map((row) => {
         if (row.id === id) {
           return { ...row, amount: amount };
+        }
+        return row;
+      });
+    });
+  };
+
+  const resetName = (id, name) => {
+    setRows((rows) => {
+      return rows.map((row) => {
+        if (row.id === id) {
+          return { ...row, name: name };
         }
         return row;
       });
@@ -112,9 +146,28 @@ export default function InventoryTable(props) {
 
   const onEditSubmit = (row) => {
     const amount_int = parseInt(row.amount);
-    if (isNaN(amount_int) || amount_int < 0) {
-      console.log("Invalid amount input.");
+    if ((isNaN(amount_int) || amount_int < 0) && row.name === "") {
+      handleErrorOpen(
+        "Invalid amount and name input. Please input an integer >= 0 and a non-empty name."
+      );
       resetAmount(row.id, previous[row.id].amount);
+      resetName(row.id, previous[row.id].name);
+      onToggleEditMode(row.id);
+      return;
+    }
+
+    if (isNaN(amount_int) || amount_int < 0) {
+      handleErrorOpen("Invalid amount input. Please input an integer >= 0.");
+      resetAmount(row.id, previous[row.id].amount);
+      resetName(row.id, previous[row.id].name);
+      onToggleEditMode(row.id);
+      return;
+    }
+
+    if (row.name === "") {
+      handleErrorOpen("Invalid name input. Empty string not allowed.");
+      resetAmount(row.id, previous[row.id].amount);
+      resetName(row.id, previous[row.id].name);
       onToggleEditMode(row.id);
       return;
     }
@@ -125,12 +178,12 @@ export default function InventoryTable(props) {
       amount: amount_int,
     };
 
-    editItem({ variables: input }).then(() => props.refetch());
+    editItem({ variables: input });
     onToggleEditMode(row.id);
   };
 
   const onDeleteSubmit = (id, message) => {
-    deleteItem({ variables: { id: id, message: message } }.then(() => props.refetch()));
+    deleteItem({ variables: { id: id, message: message } });
     var filtered = rows.filter((e) => {
       return e.id !== id;
     });
@@ -173,9 +226,15 @@ export default function InventoryTable(props) {
   };
 
   const handleFormSubmit = () => {
+    if (input.name === "" || !(parseInt(input.amount) >= 0)) {
+      handleErrorOpen("Invalid name or amount. Try again.");
+      setInput({ name: "", amount: "" });
+      setFormOpen(false);
+      return;
+    }
     createItem({
       variables: { name: input.name, amount: parseInt(input.amount) },
-    }).then(() => props.refetch());
+    });
     setInput({ name: "", amount: "" });
     setFormOpen(false);
   };
@@ -185,7 +244,7 @@ export default function InventoryTable(props) {
   };
 
   const handleRestore = (id) => {
-    restoreItem({ variables: { id: id } }).then(() => props.refetch());
+    restoreItem({ variables: { id: id } });
   };
 
   const handleOpenPermDelete = (id) => {
@@ -199,13 +258,34 @@ export default function InventoryTable(props) {
   };
 
   const handlePermDelete = (id) => {
-    permDelete({ variables: { id: id } }).then(() => props.refetch());
+    permDelete({ variables: { id: id } });
     setPermDeleteID("");
     setPermDeleteOpen(false);
   };
 
+  const handleErrorOpen = (message) => {
+    setErrorMessage(message);
+    setErrorOpen(true);
+  };
+
+  const handleErrorClose = () => {
+    setErrorMessage("");
+    setErrorOpen(false);
+  };
+
   return (
     <div>
+      <Dialog open={errorOpen} onClose={handleErrorClose}>
+        <DialogTitle>{"Error"}</DialogTitle>
+        <DialogContent>
+          <DialogContentText>{errorMessage}</DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleErrorClose} autoFocus>
+            Close
+          </Button>
+        </DialogActions>
+      </Dialog>
       <TableContainer component={Paper}>
         <Table sx={{ minWidth: 650 }}>
           <TableHead>
