@@ -4,9 +4,12 @@
   "description": "",
   "scripts": {
     "setup": "cd api && npm install && cd ../app && npm install",
-    "start": "cd api && npm start && cd ../app && npm start"
+    "start": "concurrently --kill-others-on-fail \"cd api && npm start\" \"cd app && npm start\""
   },
   "keywords": [],
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "concurrently": "^7.0.0"
+  }
 }
