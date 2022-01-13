@@ -25,7 +25,7 @@ import {
   ITEM_PERM_DELETE_MUTATION,
 } from "../graphql/mutations";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 
 const CustomTableCell = ({ row, name, onChange }) => {
   const { isEditMode } = row;
@@ -50,7 +50,7 @@ export default function InventoryTable(props) {
     ? props.data.deletedItems
     : [];
   const [rows, setRows] = useState(queryRows);
-  const [deletedItems, setdeletedItems] = useState(queryDeletedItems);
+  const [deletedItems, setDeletedItems] = useState(queryDeletedItems);
   const [previous, setPrevious] = useState({});
   const [formOpen, setFormOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -69,7 +69,7 @@ export default function InventoryTable(props) {
 
   useEffect(() => {
     setRows(props.data.items);
-    setdeletedItems(props.data.deletedItems);
+    setDeletedItems(props.data.deletedItems);
   }, [props.data]);
 
   const onToggleEditMode = (id) => {
@@ -77,6 +77,17 @@ export default function InventoryTable(props) {
       return rows.map((row) => {
         if (row.id === id) {
           return { ...row, isEditMode: !row.isEditMode };
+        }
+        return row;
+      });
+    });
+  };
+
+  const resetAmount = (id, amount) => {
+    setRows((state) => {
+      return rows.map((row) => {
+        if (row.id === id) {
+          return { ...row, amount: amount };
         }
         return row;
       });
@@ -101,10 +112,10 @@ export default function InventoryTable(props) {
 
   const onEditSubmit = (row) => {
     const amount_int = parseInt(row.amount);
-    if (isNaN(amount_int)) {
-      alert("Invalid amount integer.");
+    if (isNaN(amount_int) || amount_int < 0) {
+      console.log("Invalid amount input.");
+      resetAmount(row.id, previous[row.id].amount);
       onToggleEditMode(row.id);
-      props.refetch();
       return;
     }
 
@@ -114,18 +125,16 @@ export default function InventoryTable(props) {
       amount: amount_int,
     };
 
-    editItem({ variables: input });
+    editItem({ variables: input }).then(() => props.refetch());
     onToggleEditMode(row.id);
-    props.refetch();
   };
 
   const onDeleteSubmit = (id, message) => {
-    deleteItem({ variables: { id: id, message: message } });
+    deleteItem({ variables: { id: id, message: message } }.then(() => props.refetch()));
     var filtered = rows.filter((e) => {
       return e.id !== id;
     });
     setRows(filtered);
-    props.refetch();
   };
 
   const handleFormOpen = () => {
@@ -166,10 +175,9 @@ export default function InventoryTable(props) {
   const handleFormSubmit = () => {
     createItem({
       variables: { name: input.name, amount: parseInt(input.amount) },
-    });
+    }).then(() => props.refetch());
     setInput({ name: "", amount: "" });
     setFormOpen(false);
-    props.refetch();
   };
 
   const toggleRecover = () => {
@@ -177,8 +185,7 @@ export default function InventoryTable(props) {
   };
 
   const handleRestore = (id) => {
-    restoreItem({ variables: { id: id } });
-    props.refetch();
+    restoreItem({ variables: { id: id } }).then(() => props.refetch());
   };
 
   const handleOpenPermDelete = (id) => {
@@ -192,10 +199,9 @@ export default function InventoryTable(props) {
   };
 
   const handlePermDelete = (id) => {
-    permDelete({ variables: { id: id } });
+    permDelete({ variables: { id: id } }).then(() => props.refetch());
     setPermDeleteID("");
     setPermDeleteOpen(false);
-    props.refetch();
   };
 
   return (
