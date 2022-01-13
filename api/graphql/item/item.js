@@ -185,7 +185,7 @@ var mutationType = new graphql.GraphQLObjectType({
       },
       resolve: (root, { id }) => {
         return new Promise((resolve, reject) => {
-          db.run("UPDATE items SET deleted = 0 WHERE id = ?;", id, (err) => {
+          db.run("UPDATE items SET deleted = 0, delete_message = NULL WHERE id = ?;", id, (err) => {
             if (err) {
               reject(err);
             }
