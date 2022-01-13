@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "scripts": {
-    "all": "npm setup && npm start",
+    "all": "npm run setup && npm start",
     "setup": "npm install && cd api && npm install && cd ../app && npm install",
     "start": "concurrently --kill-others-on-fail \"cd api && npm start\" \"cd app && npm start\""
   },
