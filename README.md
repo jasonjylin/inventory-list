@@ -2,6 +2,9 @@
 Built for Shopify Backend Developer Intern Challenge - Summer 2022
 
 # Setup
+Make sure you have node version >= 14 installed
+https://nodejs.org/en/download/
+
 To run the app locally, follow these steps:
 1. Clone the repo
 2. Run `npm run all`
