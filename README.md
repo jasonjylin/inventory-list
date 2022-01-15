@@ -38,3 +38,5 @@ Simple CRUD app for inventory items with a name and an amount that also has soft
 - Permanently deleting inventory items (hard delete)
 - Table for restoring inventory items
 - GraphQL api with GraphiQL
+
+Following Extra Feature Chosen: When deleting, allow deletion comments and undeletion
